@@ -12,8 +12,10 @@ export async function createItem(formData: FormData) {
   const min_stock = parseInt(formData.get("min_stock") as string, 10);
   const production_year =
     parseInt(formData.get("production_year") as string, 10) || null;
-  const service_life =
-    parseInt(formData.get("service_life") as string, 10) || null;
+  const has_serial_number = formData.get("has_serial_number") === "true";
+  const has_service_life = formData.get("has_service_life") === "true";
+  const service_life = has_service_life ?
+    parseInt(formData.get("service_life") as string, 10) || null : null;
   const imageFile = formData.get("image") as File | null;
 
   let image_url = null;
@@ -45,6 +47,8 @@ export async function createItem(formData: FormData) {
       min_stock,
       production_year,
       service_life,
+      has_serial_number,
+      has_service_life,
       image_url,
     })
     .select("id")
@@ -55,7 +59,7 @@ export async function createItem(formData: FormData) {
     const initial_quantity =
       parseInt(formData.get("initial_quantity") as string, 10) || 0;
 
-    if (warehouse_id && warehouse_id !== "none" && initial_quantity > 0) {
+    if (!has_serial_number && warehouse_id && warehouse_id !== "none" && initial_quantity > 0) {
       await supabase.from("inventory").insert({
         item_id: itemData.id,
         warehouse_id,

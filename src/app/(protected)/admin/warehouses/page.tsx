@@ -15,7 +15,7 @@ export default async function WarehousesPage() {
 
       <div className="grid gap-6 lg:grid-cols-3 px-4 sm:px-0">
         {/* Form for new warehouse */}
-        <div className="lg:col-span-1 border rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 h-fit">
+        <div className="lg:col-span-1 border border-black/5 rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 h-fit">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Plus className="w-5 h-5 text-blue-500" />
             새 창고 등록
@@ -23,7 +23,7 @@ export default async function WarehousesPage() {
           <form action={async (fd) => { 'use server'; await createWarehouse(fd); }} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">창고(공간) 이름</label>
-              <input name="name" required className="w-full rounded-md border p-2 text-sm dark:bg-zinc-800 dark:border-zinc-700" placeholder="예: 1번 서버실" />
+              <input name="name" required className="w-full rounded-md border border-black/5 p-2 text-sm dark:bg-zinc-800 dark:border-zinc-700" placeholder="예: 1번 서버실" />
             </div>
             <button type="submit" className="w-full bg-blue-600 text-white rounded-md p-2 text-sm font-medium hover:bg-blue-700 transition-colors">
               등록하기
@@ -32,7 +32,7 @@ export default async function WarehousesPage() {
         </div>
 
         {/* List of warehouses */}
-        <div className="lg:col-span-2 border rounded-2xl bg-white shadow-sm dark:bg-zinc-900 dark:border-zinc-800 overflow-hidden">
+        <div className="lg:col-span-2 border border-black/5 rounded-2xl bg-white shadow-sm dark:bg-zinc-900 dark:border-zinc-800 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-gray-50 text-gray-700 dark:bg-zinc-800 dark:text-gray-300 uppercase font-semibold">
@@ -41,7 +41,7 @@ export default async function WarehousesPage() {
                 <th className="px-4 py-3 text-right">관리</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
+            <tbody className="divide-y divide-black/5 dark:divide-zinc-800">
               {!warehouses || warehouses.length === 0 ? (
                 <tr>
                   <td colSpan={2} className="px-4 py-8 text-center text-gray-500">등록된 창고가 없습니다.</td>

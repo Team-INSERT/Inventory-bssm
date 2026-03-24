@@ -26,7 +26,7 @@ export default async function HistoryPage() {
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block border rounded-2xl bg-white shadow-sm dark:bg-zinc-900 dark:border-zinc-800 overflow-hidden">
+      <div className="hidden md:block border border-black/5 rounded-2xl bg-white shadow-sm dark:bg-zinc-900 dark:border-zinc-800 overflow-hidden">
         <table className="w-full text-left text-sm whitespace-nowrap">
           <thead className="bg-gray-50 text-gray-700 dark:bg-zinc-800 dark:text-gray-300 uppercase font-bold tracking-widest text-[10px]">
             <tr>
@@ -37,7 +37,7 @@ export default async function HistoryPage() {
               <th className="px-6 py-4">일시</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
+          <tbody className="divide-y divide-black/5 dark:divide-zinc-800">
             {!txs || txs.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-6 py-12 text-center text-gray-500 font-medium font-medium">대여 현황이 없습니다.</td>
@@ -87,7 +87,7 @@ export default async function HistoryPage() {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-4 px-4">
         {!txs || txs.length === 0 ? (
-          <div className="py-20 text-center text-gray-500 font-medium border-2 border-dashed rounded-3xl dark:border-zinc-800">
+          <div className="py-20 text-center text-gray-500 font-medium border-2 border-black/10 border-dashed rounded-3xl dark:border-zinc-800">
             대여 현황이 없습니다.
           </div>
         ) : (
@@ -101,7 +101,7 @@ export default async function HistoryPage() {
             else if (tx.type === 'IN') details = `도착지: ${toWH || '알 수 없음'}`
 
             return (
-              <div key={tx.id} className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800 shadow-sm space-y-4">
+              <div key={tx.id} className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-black/5 dark:border-zinc-800 shadow-sm space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-black text-gray-900 dark:text-white tracking-tight text-lg">{tx.items?.name}</h3>
@@ -116,7 +116,7 @@ export default async function HistoryPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between py-4 border-y border-gray-50 dark:border-zinc-800/50">
+                <div className="flex items-center justify-between py-4 border-y border-black/5 dark:border-zinc-800/50">
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">변동 수량</span>
                     <span className="font-black text-2xl tabular-nums">{tx.quantity} <span className="text-sm font-medium text-gray-400 ml-0.5">개</span></span>

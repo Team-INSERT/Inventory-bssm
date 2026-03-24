@@ -32,7 +32,7 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex space-x-1 lg:flex-col lg:space-x-0 lg:space-y-1.5 p-1 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-gray-100 dark:border-zinc-800/50 overflow-x-auto">
+    <nav className="flex space-x-1 lg:flex-col lg:space-x-0 lg:space-y-1.5 p-3 bg-white dark:bg-zinc-900 rounded-3xl border border-black/5 shadow-sm dark:border-zinc-800/50 overflow-x-auto">
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
 
@@ -41,16 +41,16 @@ export function AdminNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "relative flex items-center justify-center lg:justify-start gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-all duration-300 group overflow-hidden",
+              "relative flex items-center justify-center lg:justify-start gap-3 rounded-xl px-4 py-3.5 text-sm font-bold transition-all duration-300 group overflow-hidden",
               isActive
                 ? "text-blue-600 dark:text-blue-400"
-                : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white",
+                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-zinc-800 dark:hover:text-white",
             )}
           >
             {isActive && (
               <motion.div
                 layoutId="adminNavActive"
-                className="absolute inset-0 bg-white dark:bg-zinc-800 shadow-sm border border-gray-100 dark:border-zinc-700/50"
+                className="absolute inset-0 bg-blue-50/50 dark:bg-zinc-800 border border-blue-100/50 dark:border-zinc-700/50 rounded-xl"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />
             )}

@@ -55,7 +55,7 @@ export default async function AdminDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="p-5 sm:p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800 shadow-sm transition-all hover:shadow-lg hover:shadow-blue-500/5"
+            className="p-5 sm:p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-black/5 dark:border-zinc-800 shadow-sm transition-all hover:shadow-lg hover:shadow-blue-500/5"
           >
             <div className={stat.bg + " w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center mb-4 " + stat.color}>
               <stat.icon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -82,8 +82,8 @@ export default async function AdminDashboard() {
             <button className="text-xs font-bold text-gray-400 hover:text-blue-500 transition-colors">전체 보기</button>
           </div>
           
-          <div className="bg-white dark:bg-zinc-900 rounded-[2rem] sm:rounded-[2.5rem] border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
-            <div className="divide-y divide-gray-50 dark:divide-zinc-800">
+          <div className="bg-white dark:bg-zinc-900 rounded-[2rem] sm:rounded-[2.5rem] border border-black/5 dark:border-zinc-800 shadow-sm overflow-hidden">
+            <div className="divide-y divide-black/5 dark:divide-zinc-800">
               {recentTxs?.map((tx: any, idx: number) => (
                 <motion.div 
                   key={tx.id} 
@@ -151,7 +151,7 @@ export default async function AdminDashboard() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.7 + idx * 0.1 }}
-                  className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800 shadow-sm group hover:border-blue-500/50 transition-all"
+                  className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-black/5 dark:border-zinc-800 shadow-sm group hover:border-blue-500/50 transition-all"
                 >
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="font-bold text-gray-900 dark:text-white">{wh.name}</h3>

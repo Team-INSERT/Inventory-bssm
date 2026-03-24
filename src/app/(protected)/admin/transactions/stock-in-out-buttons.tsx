@@ -133,7 +133,7 @@ export function StockInOutButtons({
     selectedItem?.inventory.map((inv) => inv.warehouses) || warehouses;
 
   return (
-    <div className="border rounded-2xl bg-white shadow-sm dark:bg-zinc-900 dark:border-zinc-800 p-6 space-y-5 mx-4 sm:mx-0">
+    <div className="border border-black/5 rounded-2xl bg-white shadow-sm dark:bg-zinc-900 dark:border-zinc-800 p-6 space-y-5 mx-4 sm:mx-0">
       <h2 className="text-lg font-bold tracking-tight">수동 입/출고</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <select

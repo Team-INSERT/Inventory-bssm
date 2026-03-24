@@ -4,6 +4,13 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import { createItem } from "@/features/inventory/api/item-actions";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { motion, AnimatePresence } from "framer-motion";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export function ItemCreateForm({
   warehouses,
@@ -13,6 +20,8 @@ export function ItemCreateForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [hasSerialNumber, setHasSerialNumber] = useState(false);
+  const [hasServiceLife, setHasServiceLife] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -47,7 +56,7 @@ export function ItemCreateForm({
   };
 
   return (
-    <div className="lg:col-span-1 border rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 h-fit">
+    <div className="lg:col-span-1 border border-black/5 rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 h-fit">
       <h2 className="text-lg font-bold mb-6 flex items-center gap-2 tracking-tight">
         <Plus className="w-5 h-5 text-blue-500" />새 물품 등록
       </h2>
@@ -61,7 +70,7 @@ export function ItemCreateForm({
             </label>
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="relative aspect-video w-full rounded-xl border-2 border-dashed border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950/50 flex items-center justify-center cursor-pointer hover:border-blue-500/50 hover:bg-blue-50/5 transition-all overflow-hidden"
+              className="relative aspect-video w-full rounded-xl border-2 border-dashed border-black/5 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950/50 flex items-center justify-center cursor-pointer hover:border-blue-500/50 hover:bg-blue-50/5 transition-all overflow-hidden"
             >
               {preview ? (
                 <>
@@ -148,37 +157,77 @@ export function ItemCreateForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
-                  초기 창고
-                </label>
-                <select
-                  name="warehouse_id"
-                  className="w-full rounded-xl bg-gray-50 dark:bg-zinc-950 border-0 p-3.5 text-sm font-bold appearance-none"
-                >
-                  <option value="none">지정 안 함</option>
-                  {warehouses.map((wh) => (
-                    <option key={wh.id} value={wh.id}>
-                      {wh.name}
-                    </option>
-                  ))}
-                </select>
+            <AnimatePresence>
+            {!hasSerialNumber && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="grid grid-cols-2 gap-4 overflow-hidden"
+              >
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                    초기 창고
+                  </label>
+                  <select
+                    name="warehouse_id"
+                    className="w-full rounded-xl bg-gray-50 dark:bg-zinc-950 border-0 p-3.5 text-sm font-bold appearance-none cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors"
+                  >
+                    <option value="none">지정 안 함</option>
+                    {warehouses.map((wh) => (
+                      <option key={wh.id} value={wh.id}>
+                        {wh.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                    초기 수량
+                  </label>
+                  <input
+                    name="initial_quantity"
+                    type="number"
+                    defaultValue="0"
+                    min="0"
+                    className="w-full rounded-xl bg-gray-50 dark:bg-zinc-950 border-0 p-3.5 text-sm font-black text-center focus:ring-2 focus:ring-blue-500/20 transition-shadow"
+                  />
+                </div>
+              </motion.div>
+            )}
+            </AnimatePresence>
+
+            <div className="flex flex-col gap-3">
+              <div 
+                onClick={() => setHasSerialNumber(!hasSerialNumber)}
+                className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-black/5 dark:border-zinc-800 cursor-pointer hover:border-blue-500/30 hover:shadow-sm transition-all group"
+              >
+                <div>
+                  <span className="text-sm font-black text-gray-900 dark:text-white block group-hover:text-blue-600 transition-colors">시리얼 넘버 관리</span>
+                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 block">개별 자산 추적 활성화</span>
+                </div>
+                <div className={cn("relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out", hasSerialNumber ? "bg-blue-600" : "bg-gray-200 dark:bg-zinc-700")}>
+                  <span className={cn("pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out", hasSerialNumber ? "translate-x-5" : "translate-x-0")} />
+                </div>
+                <input type="hidden" name="has_serial_number" value={hasSerialNumber ? "true" : "false"} />
               </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
-                  초기 수량
-                </label>
-                <input
-                  name="initial_quantity"
-                  type="number"
-                  defaultValue="0"
-                  min="0"
-                  className="w-full rounded-xl bg-gray-50 dark:bg-zinc-950 border-0 p-3.5 text-sm font-black text-center"
-                />
+
+              <div 
+                onClick={() => setHasServiceLife(!hasServiceLife)}
+                className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-black/5 dark:border-zinc-800 cursor-pointer hover:border-blue-500/30 hover:shadow-sm transition-all group"
+              >
+                <div>
+                  <span className="text-sm font-black text-gray-900 dark:text-white block group-hover:text-blue-600 transition-colors">내용연수 적용</span>
+                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 block">수명 주기 관리 활성화</span>
+                </div>
+                <div className={cn("relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out", hasServiceLife ? "bg-blue-600" : "bg-gray-200 dark:bg-zinc-700")}>
+                  <span className={cn("pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out", hasServiceLife ? "translate-x-5" : "translate-x-0")} />
+                </div>
+                <input type="hidden" name="has_service_life" value={hasServiceLife ? "true" : "false"} />
               </div>
             </div>
 
+            {hasServiceLife && (
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
                 내용연수 (수명/년)
@@ -191,6 +240,7 @@ export function ItemCreateForm({
                 className="w-full rounded-xl bg-gray-50 dark:bg-zinc-950 border-0 p-3.5 text-sm font-black text-center"
               />
             </div>
+            )}
           </div>
         </div>
 

@@ -80,7 +80,7 @@ export default function ClientTransferForm({ items, warehouses }: { items: any[]
                         input.value = Math.max(1, (parseInt(input.value) || 0) - 1).toString()
                       }
                     }}
-                    className="w-10 h-10 flex items-center justify-center bg-white dark:bg-zinc-800 rounded-full hover:bg-gray-50 active:scale-90 transition-all border border-gray-100 dark:border-zinc-700 shadow-sm"
+                    className="w-10 h-10 flex items-center justify-center bg-white dark:bg-zinc-800 rounded-full hover:bg-gray-50 active:scale-90 transition-all border border-black/5 dark:border-zinc-700 shadow-sm"
                   >
                     <Minus className="w-4 h-4 text-gray-400" />
                   </button>

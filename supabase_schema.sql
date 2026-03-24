@@ -53,6 +53,8 @@ CREATE TABLE public.items (
   image_url TEXT,
   production_year INTEGER,
   service_life INTEGER,
+  has_serial_number BOOLEAN DEFAULT false NOT NULL,
+  has_service_life BOOLEAN DEFAULT true NOT NULL,
   min_stock INTEGER DEFAULT 0 NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -60,6 +62,23 @@ CREATE TABLE public.items (
 ALTER TABLE public.items ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can read items" ON public.items FOR SELECT USING (true);
 CREATE POLICY "Only admins can modify items" ON public.items FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+);
+
+-- 4.5 Item Serials table
+CREATE TABLE public.item_serials (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  item_id UUID REFERENCES public.items(id) ON DELETE CASCADE NOT NULL,
+  serial_number TEXT NOT NULL,
+  warehouse_id UUID REFERENCES public.warehouses(id) ON DELETE SET NULL,
+  status TEXT DEFAULT 'AVAILABLE' NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  UNIQUE(item_id, serial_number)
+);
+
+ALTER TABLE public.item_serials ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can read item_serials" ON public.item_serials FOR SELECT USING (true);
+CREATE POLICY "Only admins can modify item_serials" ON public.item_serials FOR ALL USING (
   EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
 );
 

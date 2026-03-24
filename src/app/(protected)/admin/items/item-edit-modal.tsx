@@ -4,6 +4,12 @@ import { useState } from 'react'
 import { Pencil, X, Loader2, Save } from 'lucide-react'
 import { updateItem } from '@/features/inventory/api/item-actions'
 import { motion, AnimatePresence } from 'framer-motion'
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
 
 export function ItemEditModal({ item }: { item: any }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -14,7 +20,9 @@ export function ItemEditModal({ item }: { item: any }) {
     barcode: item.barcode || '',
     min_stock: item.min_stock,
     production_year: item.production_year || new Date().getFullYear(),
-    service_life: item.service_life || 5
+    service_life: item.service_life || 5,
+    has_serial_number: item.has_serial_number ?? false,
+    has_service_life: item.has_service_life ?? true,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,6 +122,16 @@ export function ItemEditModal({ item }: { item: any }) {
                       />
                     </div>
                     <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">생산 년도</label>
+                      <input 
+                        type="number" 
+                        value={formData.production_year}
+                        onChange={e => setFormData(prev => ({ ...prev, production_year: parseInt(e.target.value) || 0 }))}
+                        className="w-full rounded-xl bg-gray-50 dark:bg-zinc-950 border-0 p-3.5 text-sm font-black text-center focus:ring-2 ring-blue-500/20" 
+                      />
+                    </div>
+                    {formData.has_service_life && (
+                    <div>
                       <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">내용 연수 (년)</label>
                       <input 
                         type="number" 
@@ -121,6 +139,35 @@ export function ItemEditModal({ item }: { item: any }) {
                         onChange={e => setFormData(prev => ({ ...prev, service_life: parseInt(e.target.value) || 0 }))}
                         className="w-full rounded-xl bg-gray-50 dark:bg-zinc-950 border-0 p-3.5 text-sm font-black text-center focus:ring-2 ring-blue-500/20" 
                       />
+                    </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <div 
+                      onClick={() => setFormData({ ...formData, has_serial_number: !formData.has_serial_number })}
+                      className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-transparent cursor-pointer hover:border-blue-500/30 hover:bg-white dark:hover:bg-zinc-900 transition-all group shadow-sm"
+                    >
+                      <div>
+                        <span className="text-sm font-black text-gray-900 dark:text-white block group-hover:text-blue-600 transition-colors">시리얼 번호</span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 block">개별 자산 추적</span>
+                      </div>
+                      <div className={cn("relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out", formData.has_serial_number ? "bg-blue-600" : "bg-gray-200 dark:bg-zinc-700")}>
+                        <span className={cn("pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out", formData.has_serial_number ? "translate-x-5" : "translate-x-0")} />
+                      </div>
+                    </div>
+
+                    <div 
+                      onClick={() => setFormData({ ...formData, has_service_life: !formData.has_service_life, service_life: !formData.has_service_life ? formData.service_life || 5 : null as any })}
+                      className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-transparent cursor-pointer hover:border-blue-500/30 hover:bg-white dark:hover:bg-zinc-900 transition-all group shadow-sm"
+                    >
+                      <div>
+                        <span className="text-sm font-black text-gray-900 dark:text-white block group-hover:text-blue-600 transition-colors">내용연수 적용</span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 block">수명 주기 관리</span>
+                      </div>
+                      <div className={cn("relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out", formData.has_service_life ? "bg-blue-600" : "bg-gray-200 dark:bg-zinc-700")}>
+                        <span className={cn("pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out", formData.has_service_life ? "translate-x-5" : "translate-x-0")} />
+                      </div>
                     </div>
                   </div>
 

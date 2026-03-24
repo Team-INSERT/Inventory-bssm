@@ -57,7 +57,7 @@ export default async function AdminTransactionsPage() {
 
       <StockInOutButtons items={items || []} warehouses={warehouses || []} />
 
-      <div className="border rounded-2xl bg-white shadow-sm dark:bg-zinc-900 dark:border-zinc-800 overflow-hidden mx-4 sm:mx-0">
+      <div className="border border-black/5 rounded-2xl bg-white shadow-sm dark:bg-zinc-900 dark:border-zinc-800 overflow-hidden mx-4 sm:mx-0">
         <h3 className="text-lg font-black p-6 tracking-tight border-b border-gray-50 dark:border-zinc-800">최근 이력</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
@@ -70,7 +70,7 @@ export default async function AdminTransactionsPage() {
               <th className="px-4 py-3">일시</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
+          <tbody className="divide-y divide-black/5 dark:divide-zinc-800">
             {!txs || txs.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-gray-500">

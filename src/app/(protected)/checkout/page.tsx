@@ -60,7 +60,7 @@ export default async function CheckoutPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <div className="p-6 glass glass-dark rounded-3xl border border-gray-100 dark:border-zinc-800 flex items-center gap-4">
+          <div className="p-6 glass glass-dark rounded-3xl border border-black/5 dark:border-zinc-800 flex items-center gap-4">
             <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-500">
               <ArrowDownToLine className="w-5 h-5" />
             </div>
@@ -69,7 +69,7 @@ export default async function CheckoutPage() {
               <p className="text-sm font-bold">물품 검색 및 선택</p>
             </div>
           </div>
-          <div className="p-6 glass glass-dark rounded-3xl border border-gray-100 dark:border-zinc-800 flex items-center gap-4">
+          <div className="p-6 glass glass-dark rounded-3xl border border-black/5 dark:border-zinc-800 flex items-center gap-4">
             <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500">
               <ShoppingBag className="w-5 h-5" />
             </div>
@@ -78,7 +78,7 @@ export default async function CheckoutPage() {
               <p className="text-sm font-bold">수량 및 사유 입력</p>
             </div>
           </div>
-          <div className="p-6 glass glass-dark rounded-3xl border border-gray-100 dark:border-zinc-800 flex items-center gap-4">
+          <div className="p-6 glass glass-dark rounded-3xl border border-black/5 dark:border-zinc-800 flex items-center gap-4">
             <div className="p-2 bg-purple-500/10 rounded-xl text-purple-500">
               <PackageSearch className="w-5 h-5" />
             </div>
