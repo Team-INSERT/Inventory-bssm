@@ -20,23 +20,29 @@ export async function createItem(formData: FormData) {
 
   let image_url = null;
 
-  if (imageFile && imageFile.size > 0) {
-    const fileExt = imageFile.name.split(".").pop();
-    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-    const filePath = `items/${fileName}`;
+    if (imageFile && imageFile.size > 0) {
+      const fileExt = imageFile.name.split(".").pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `items/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("item-images")
-      .upload(filePath, imageFile);
+      const arrayBuffer = await imageFile.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
 
-    if (!uploadError) {
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("item-images").getPublicUrl(filePath);
+      const { error: uploadError } = await supabase.storage
+        .from("item-images")
+        .upload(filePath, buffer, {
+          contentType: imageFile.type || "image/jpeg",
+          upsert: false
+        });
 
-      image_url = publicUrl;
+      if (!uploadError) {
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("item-images").getPublicUrl(filePath);
+
+        image_url = publicUrl;
+      }
     }
-  }
 
   const { data: itemData, error } = await supabase
     .from("items")
