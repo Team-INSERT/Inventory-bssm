@@ -14,35 +14,36 @@ export async function createItem(formData: FormData) {
     parseInt(formData.get("production_year") as string, 10) || null;
   const has_serial_number = formData.get("has_serial_number") === "true";
   const has_service_life = formData.get("has_service_life") === "true";
-  const service_life = has_service_life ?
-    parseInt(formData.get("service_life") as string, 10) || null : null;
+  const service_life = has_service_life
+    ? parseInt(formData.get("service_life") as string, 10) || null
+    : null;
   const imageFile = formData.get("image") as File | null;
 
   let image_url = null;
 
-    if (imageFile && imageFile.size > 0) {
-      const fileExt = imageFile.name.split(".").pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `items/${fileName}`;
+  if (imageFile && imageFile.size > 0) {
+    const fileExt = imageFile.name.split(".").pop();
+    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+    const filePath = `items/${fileName}`;
 
-      const arrayBuffer = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+    const arrayBuffer = await imageFile.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-      const { error: uploadError } = await supabase.storage
-        .from("item-images")
-        .upload(filePath, buffer, {
-          contentType: imageFile.type || "image/jpeg",
-          upsert: false
-        });
+    const { error: uploadError } = await supabase.storage
+      .from("item-images")
+      .upload(filePath, buffer, {
+        contentType: imageFile.type || "image/jpeg",
+        upsert: false,
+      });
 
-      if (!uploadError) {
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("item-images").getPublicUrl(filePath);
+    if (!uploadError) {
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("item-images").getPublicUrl(filePath);
 
-        image_url = publicUrl;
-      }
+      image_url = publicUrl;
     }
+  }
 
   const { data: itemData, error } = await supabase
     .from("items")
@@ -65,7 +66,12 @@ export async function createItem(formData: FormData) {
     const initial_quantity =
       parseInt(formData.get("initial_quantity") as string, 10) || 0;
 
-    if (!has_serial_number && warehouse_id && warehouse_id !== "none" && initial_quantity > 0) {
+    if (
+      !has_serial_number &&
+      warehouse_id &&
+      warehouse_id !== "none" &&
+      initial_quantity > 0
+    ) {
       await supabase.from("inventory").insert({
         item_id: itemData.id,
         warehouse_id,
