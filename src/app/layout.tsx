@@ -1,26 +1,32 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'BSM 재고 관리 시스템',
-  description: '부산소프트웨어마이스터고 통합 재고 관리 서비스',
-  manifest: '/manifest.json',
+  title: "BSM 재고 관리 시스템",
+  description: "부산소프트웨어마이스터고 통합 재고 관리 서비스",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
-    title: 'BSM 재고',
+    statusBarStyle: "default",
+    title: "BSM 재고",
   },
-}
+};
 
 export const viewport = {
-  themeColor: '#f8fafc',
-  width: 'device-width',
+  themeColor: "#f8fafc",
+  width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-}
+  minimumScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
+};
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
@@ -42,9 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
-  )
+  );
 }
