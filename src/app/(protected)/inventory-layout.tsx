@@ -30,8 +30,22 @@ export default function InventoryLayout({
     setActiveZone(zoneId);
   };
 
-  const filteredData = activeZone
-    ? initialData.filter((item) => item.warehouse_id === activeZone)
+  const getActiveWarehouseId = () => {
+    if (!activeZone) return null;
+    const zoneNameMap: Record<string, string> = {
+      "zone-a": "A구역",
+      "zone-b": "B구역",
+      "zone-c": "C구역",
+    };
+    const targetName = zoneNameMap[activeZone];
+    if (!targetName) return null;
+    return warehouses.find((w) => w.name.includes(targetName))?.id || null;
+  };
+
+  const activeWarehouseId = getActiveWarehouseId();
+
+  const filteredData = activeWarehouseId
+    ? initialData.filter((item) => item.warehouse_id === activeWarehouseId)
     : initialData;
 
   return (
