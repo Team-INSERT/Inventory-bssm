@@ -15,13 +15,10 @@ export default async function AdminLayout({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: userData } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  // metadata에서 role 확인
+  const userRole = user?.user_metadata?.role;
 
-  if (userData?.role !== "admin") {
+  if (userRole !== "admin") {
     redirect("/");
   }
 
