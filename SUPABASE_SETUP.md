@@ -1,0 +1,98 @@
+/\*\*
+
+- Setup Guide for Supabase Integration
+-
+- 📋 Step 1: Database Schema Setup
+- ***
+- 1.  Go to Supabase Dashboard: https://supabase.com/dashboard/project/ezdxnhglpbrjugxeafzo
+- 2.  Navigate to: SQL Editor
+- 3.  Create a new query and copy the entire content from: ./supabase_schema.sql
+- 4.  Execute the SQL to create all tables and RLS policies
+-
+- 📋 Step 2: Environment Variables
+- ***
+- ✅ Already configured in: .env.local
+- - NEXT_PUBLIC_SUPABASE_URL=https://ezdxnhglpbrjugxeafzo.supabase.co
+- - NEXT*PUBLIC_SUPABASE_ANON_KEY=sb_publishable*-6vy93xvVpWoD7xtNmw-gw_9ePdkHMB
+-
+- For seed script, you'll also need:
+- - SUPABASE_SERVICE_ROLE_KEY (get from Settings > API > Service Role Key)
+-
+- 📋 Step 3: Seed Database with Mock Data
+- ***
+-
+- Option A: Using Node.js (Recommended)
+- 1.  Add SERVICE_ROLE_KEY to .env.local:
+- SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+-
+- 2.  Run seed script:
+- node scripts/seed-db.js
+-
+- Option B: Manual SQL Insert
+- If you prefer to seed data manually:
+- 1.  Go to SQL Editor in Supabase Dashboard
+- 2.  Copy the content from ./supabase_seed_data.sql
+- 3.  Execute it
+-
+- 📋 Step 4: Test the Connection
+- ***
+- 1.  Start the dev server:
+- npm run dev
+-
+- 2.  Check that pages load and queries work
+- 3.  Check browser console for any errors
+-
+- 🔑 Getting Your Service Role Key
+- ***
+- 1.  Go to: https://supabase.com/dashboard/project/ezdxnhglpbrjugxeafzo/settings/api
+- 2.  Look for "Service Role Key" (different from Anon Key)
+- 3.  Copy it and add to .env.local
+- ⚠️ NEVER commit this key to git - it's a secret!
+-
+- 📚 Database Schema Overview
+- ***
+- Tables:
+- - users: User accounts (extended from auth.users)
+- - warehouses: Storage locations
+- - items: Equipment/inventory items
+- - item_serials: Serial numbers for tracked items
+- - inventory: Quantity mapping (items × warehouses)
+- - transactions: Audit log (check-in, check-out, transfers, disposals)
+-
+- Row Level Security (RLS):
+- - Users can only see their own data
+- - Admins can see all data
+- - All modifications require appropriate permissions
+-
+- 🆘 Troubleshooting
+- ***
+-
+- Q: "NEXT_PUBLIC_SUPABASE_URL is not defined"
+- A: Make sure .env.local exists and has the correct values
+-
+- Q: "RLS policy violation"
+- A: Check that you're logged in with a user that has the right role
+-
+- Q: Seed script fails
+- A: Make sure SUPABASE_SERVICE_ROLE_KEY is set in environment
+-
+- Q: No data showing in app
+- A: 1. Check Supabase Dashboard > Table Editor to verify data was inserted
+- 2. Check browser console for query errors
+- 3. Verify RLS policies allow your user role
+-
+- 🎯 Next Steps
+- ***
+- 1.  Execute the SQL schema in Supabase Dashboard
+- 2.  Get your Service Role Key from Settings > API
+- 3.  Run: SUPABASE_SERVICE_ROLE_KEY=<key> node scripts/seed-db.js
+- 4.  Test the app: npm run dev
+- 5.  Visit http://localhost:3000 and check tables are populated
+-
+- 📝 Created files:
+- - .env.local: Environment configuration
+- - scripts/seed-db.ts: TypeScript seed script
+- - scripts/seed-db.js: JavaScript seed script
+- - src/shared/api/supabase/server-real.ts: Real Supabase server client
+- - SUPABASE_SETUP.md: This file
+    \*/
