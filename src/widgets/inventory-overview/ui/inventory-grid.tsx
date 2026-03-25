@@ -1,27 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Package, ArrowRightLeft, Plus, Minus } from "lucide-react";
 import { updateInventory } from "@/features/inventory/api/inventory-actions";
+import { getAvailableSerials } from "@/features/inventory/api/serial-actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import PremiumSelect from "@/shared/ui/premium-select";
+import { createClient } from "@/shared/api/supabase/client";
+import type {
+  InventoryGridItem,
+  AdjustingItem,
+  AdjustmentModalState,
+  AvailableSerial,
+} from "@/shared/types";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
-type InventoryItem = {
-  item_id: string;
-  warehouse_id: string;
-  quantity: number;
-  item_name: string;
-  item_category: string;
-  item_min: number;
-  warehouse_name: string;
-  image_url?: string;
-};
 
 export default function InventoryGrid({
   initialData,
@@ -29,7 +26,7 @@ export default function InventoryGrid({
   isAdmin,
   hideWarehouseFilter = false,
 }: {
-  initialData: InventoryItem[];
+  initialData: InventoryGridItem[];
   warehouses: { id: string; name: string }[];
   isAdmin: boolean;
   hideWarehouseFilter?: boolean;
@@ -37,20 +34,66 @@ export default function InventoryGrid({
   const [search, setSearch] = useState("");
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>("all");
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
-  const [adjustingItem, setAdjustingItem] = useState<{
-    item_id: string;
-    warehouse_id: string;
-    name: string;
-  } | null>(null);
-  const [adjustData, setAdjustData] = useState({
+  const [adjustingItem, setAdjustingItem] = useState<AdjustingItem | null>(
+    null,
+  );
+  const [adjustData, setAdjustData] = useState<AdjustmentModalState>({
     quantity: 1,
+    serial_id: "",
     reason: "",
     isDisposal: false,
-    type: "OUT" as "IN" | "OUT",
+    type: "OUT",
   });
+  const [availableSerials, setAvailableSerials] = useState<AvailableSerial[]>(
+    [],
+  );
+
+  // Debug: Log initial data
+  useEffect(() => {
+    console.log("=== InventoryGrid Component ===");
+    console.log("initialData received:", initialData);
+    console.log(
+      "B 창고 items:",
+      initialData.filter((d) => d.warehouse_id === "w-b"),
+    );
+    console.log("selectedWarehouse:", selectedWarehouse);
+  }, []);
+
+  // Load available serials when adjusting a serial-managed item
+  useEffect(() => {
+    const loadSerials = async () => {
+      if (!adjustingItem?.has_serial_number) {
+        setAvailableSerials([]);
+        return;
+      }
+
+      console.log(
+        "Fetching serials for item:",
+        adjustingItem.item_id,
+        "warehouse:",
+        adjustingItem.warehouse_id,
+      );
+
+      const { data, error } = await getAvailableSerials(
+        adjustingItem.item_id,
+        adjustingItem.warehouse_id,
+      );
+
+      if (error) {
+        console.error("Error loading serials:", error);
+        setAvailableSerials([]);
+      } else {
+        setAvailableSerials(data || []);
+        // Reset serial_id when loading new serials
+        setAdjustData((prev) => ({ ...prev, serial_id: "" }));
+      }
+    };
+
+    loadSerials();
+  }, [adjustingItem]);
 
   // Filter logic
-  const filtered = initialData.filter((inv: any) => {
+  const filtered = initialData.filter((inv: InventoryGridItem) => {
     if (selectedWarehouse !== "all" && inv.warehouse_id !== selectedWarehouse)
       return false;
     if (
@@ -68,6 +111,7 @@ export default function InventoryGrid({
     change: number,
     manualReason?: string,
     isDisposal: boolean = false,
+    serial_id?: string,
   ) => {
     const key = `${item_id}-${warehouse_id}`;
     setLoadingIds((prev: any) => new Set([...prev, key]));
@@ -82,10 +126,18 @@ export default function InventoryGrid({
     const formData = new FormData();
     formData.append("item_id", item_id);
     formData.append("warehouse_id", warehouse_id);
-    formData.append(
-      "change",
-      (isDisposal ? -Math.abs(change) : change).toString(),
-    );
+
+    // For serial-based items, pass serial_id instead of change
+    if (serial_id) {
+      formData.append("serial_id", serial_id);
+      formData.append("type", change > 0 ? "IN" : "OUT");
+    } else {
+      formData.append(
+        "change",
+        (isDisposal ? -Math.abs(change) : change).toString(),
+      );
+    }
+
     formData.append("reason", isDisposal ? `[자산폐기] ${reason}` : reason);
     formData.append("is_disposal", isDisposal.toString());
 
@@ -102,8 +154,8 @@ export default function InventoryGrid({
   };
 
   return (
-    <div className="space-y-6 px-4 sm:px-0">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-4 rounded-xl border border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 shadow-sm">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-center bg-white p-3 sm:p-4 rounded-xl border border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 shadow-sm">
         <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
@@ -111,28 +163,41 @@ export default function InventoryGrid({
             placeholder="물품명, 카테고리 검색..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-gray-50 border-0 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 dark:bg-zinc-800 dark:text-white"
+            className="w-full pl-9 pr-4 py-2 bg-gray-50 border-0 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 dark:bg-zinc-800 dark:text-white"
           />
         </div>
-        {/* Warehouse filter removed as per user request */}
+        {!hideWarehouseFilter && warehouses && warehouses.length > 0 && (
+          <select
+            value={selectedWarehouse}
+            onChange={(e) => setSelectedWarehouse(e.target.value)}
+            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs sm:text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+          >
+            <option value="all">모든 창고</option>
+            {warehouses.map((warehouse) => (
+              <option key={warehouse.id} value={warehouse.id}>
+                {warehouse.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <motion.div
         layout
-        className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 px-4 sm:px-0"
+        className="grid gap-3 sm:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
       >
         <AnimatePresence>
           {filtered.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="col-span-full py-20 text-center text-gray-400 border-2 border-dashed rounded-2xl dark:border-zinc-800 bg-gray-50/30 dark:bg-zinc-900/20"
+              className="col-span-full py-16 sm:py-20 text-center text-gray-400 border-2 border-dashed rounded-2xl dark:border-zinc-800 bg-gray-50/30 dark:bg-zinc-900/20"
             >
-              <Package className="w-12 h-12 mx-auto mb-4 opacity-20" />
+              <Package className="w-10 sm:w-12 h-10 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-20" />
               조건에 맞는 재고가 없습니다.
             </motion.div>
           ) : (
-            filtered.map((inv: any, idx: number) => {
+            filtered.map((inv: InventoryGridItem, idx: number) => {
               const isLoading = loadingIds.has(
                 `${inv.item_id}-${inv.warehouse_id}`,
               );
@@ -151,6 +216,7 @@ export default function InventoryGrid({
                       item_id: inv.item_id,
                       warehouse_id: inv.warehouse_id,
                       name: inv.item_name,
+                      has_serial_number: inv.has_serial_number,
                     })
                   }
                   className={cn(
@@ -217,7 +283,7 @@ export default function InventoryGrid({
                     </div>
 
                     <div className="flex gap-2">
-                      {isAdmin && (
+                      {isAdmin && !inv.has_serial_number && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -247,6 +313,7 @@ export default function InventoryGrid({
                             item_id: inv.item_id,
                             warehouse_id: inv.warehouse_id,
                             name: inv.item_name,
+                            has_serial_number: inv.has_serial_number,
                           });
                         }}
                         className="px-4 py-2 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all"
@@ -270,7 +337,7 @@ export default function InventoryGrid({
               initial={{ opacity: 0, scale: 0.95, y: 100 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 100 }}
-              className="w-full max-w-lg sm:max-w-md bg-white dark:bg-zinc-900 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl border-t sm:border border-gray-100 dark:border-zinc-800 overflow-hidden"
+              className="w-full max-w-lg sm:max-w-md bg-white dark:bg-zinc-900 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl border-t sm:border border-gray-100 dark:border-zinc-800"
             >
               <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-4 mb-8">
@@ -320,75 +387,109 @@ export default function InventoryGrid({
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
-                      조정 수량
-                    </label>
-                    <div className="flex items-center justify-center gap-6">
-                      <button
-                        type="button"
-                        onClick={() =>
+                  {/* Quantity or Serial Selection */}
+                  {adjustingItem.has_serial_number ? (
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
+                        시리얼 번호 선택
+                      </label>
+                      <PremiumSelect
+                        value={adjustData.serial_id}
+                        onChange={(value) =>
                           setAdjustData((prev) => ({
                             ...prev,
-                            quantity: Math.max(1, prev.quantity - 1),
+                            serial_id: value,
                           }))
                         }
-                        className="w-16 h-16 flex-none flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white hover:bg-gray-200 active:scale-90 transition-all shadow-sm"
-                      >
-                        <Minus className="w-8 h-8" />
-                      </button>
-
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={adjustData.quantity}
-                        onChange={(e) => {
-                          const inputValue = e.target.value;
-                          const numericValue = inputValue.replace(
-                            /[^0-9]/g,
-                            "",
-                          );
-                          const quantity =
-                            numericValue === "" ? 0 : parseInt(numericValue);
-
-                          setAdjustData((prev) => ({
-                            ...prev,
-                            quantity: quantity,
-                          }));
-                        }}
-                        onBlur={(e) => {
-                          if (!e.target.value || parseInt(e.target.value) < 1) {
-                            setAdjustData((prev) => ({ ...prev, quantity: 1 }));
-                          }
-                        }}
-                        className={cn(
-                          "w-24 bg-transparent border-0 p-0 h-16 text-center font-black tabular-nums focus:ring-0 dark:text-white",
-                          String(adjustData.quantity).length <= 1
-                            ? "text-5xl"
-                            : String(adjustData.quantity).length <= 2
-                              ? "text-4xl"
-                              : String(adjustData.quantity).length <= 3
-                                ? "text-3xl"
-                                : String(adjustData.quantity).length <= 4
-                                  ? "text-2xl"
-                                  : "text-xl",
-                        )}
+                        options={availableSerials.map((serial) => ({
+                          id: serial.id,
+                          name: serial.serial_number,
+                        }))}
+                        placeholder="시리얼 번호를 선택하세요..."
                       />
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setAdjustData((prev) => ({
-                            ...prev,
-                            quantity: prev.quantity + 1,
-                          }))
-                        }
-                        className="w-16 h-16 flex-none flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white hover:bg-gray-200 active:scale-90 transition-all shadow-sm"
-                      >
-                        <Plus className="w-8 h-8" />
-                      </button>
+                      {availableSerials.length === 0 && (
+                        <p className="text-xs text-red-600 dark:text-red-400 font-medium mt-2">
+                          사용 가능한 시리얼 번호가 없습니다.
+                        </p>
+                      )}
                     </div>
-                  </div>
+                  ) : (
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
+                        조정 수량
+                      </label>
+                      <div className="flex items-center justify-center gap-6">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setAdjustData((prev) => ({
+                              ...prev,
+                              quantity: Math.max(1, prev.quantity - 1),
+                            }))
+                          }
+                          className="w-16 h-16 flex-none flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white hover:bg-gray-200 active:scale-90 transition-all shadow-sm"
+                        >
+                          <Minus className="w-8 h-8" />
+                        </button>
+
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={adjustData.quantity}
+                          onChange={(e) => {
+                            const inputValue = e.target.value;
+                            const numericValue = inputValue.replace(
+                              /[^0-9]/g,
+                              "",
+                            );
+                            const quantity =
+                              numericValue === "" ? 0 : parseInt(numericValue);
+
+                            setAdjustData((prev) => ({
+                              ...prev,
+                              quantity: quantity,
+                            }));
+                          }}
+                          onBlur={(e) => {
+                            if (
+                              !e.target.value ||
+                              parseInt(e.target.value) < 1
+                            ) {
+                              setAdjustData((prev) => ({
+                                ...prev,
+                                quantity: 1,
+                              }));
+                            }
+                          }}
+                          className={cn(
+                            "w-24 bg-transparent border-0 p-0 h-16 text-center font-black tabular-nums focus:ring-0 dark:text-white",
+                            String(adjustData.quantity).length <= 1
+                              ? "text-5xl"
+                              : String(adjustData.quantity).length <= 2
+                                ? "text-4xl"
+                                : String(adjustData.quantity).length <= 3
+                                  ? "text-3xl"
+                                  : String(adjustData.quantity).length <= 4
+                                    ? "text-2xl"
+                                    : "text-xl",
+                          )}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setAdjustData((prev) => ({
+                              ...prev,
+                              quantity: prev.quantity + 1,
+                            }))
+                          }
+                          className="w-16 h-16 flex-none flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white hover:bg-gray-200 active:scale-90 transition-all shadow-sm"
+                        >
+                          <Plus className="w-8 h-8" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {isAdmin && adjustData.type === "OUT" && (
                     <div className="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/20">
@@ -444,6 +545,7 @@ export default function InventoryGrid({
                       setAdjustingItem(null);
                       setAdjustData({
                         quantity: 1,
+                        serial_id: "",
                         reason: "",
                         isDisposal: false,
                         type: "OUT",
@@ -456,20 +558,43 @@ export default function InventoryGrid({
                   <button
                     onClick={async () => {
                       if (!adjustingItem) return;
+
+                      // Validation
+                      if (adjustingItem.has_serial_number) {
+                        if (!adjustData.serial_id) {
+                          alert("시리얼 번호를 선택하세요.");
+                          return;
+                        }
+                      } else {
+                        if (adjustData.quantity <= 0) {
+                          alert("수량을 입력하세요.");
+                          return;
+                        }
+                      }
+
                       const change =
                         adjustData.type === "IN"
-                          ? adjustData.quantity
-                          : -adjustData.quantity;
+                          ? adjustingItem.has_serial_number
+                            ? 1
+                            : adjustData.quantity
+                          : -(adjustingItem.has_serial_number
+                              ? 1
+                              : adjustData.quantity);
+
                       await handleAdjust(
                         adjustingItem.item_id,
                         adjustingItem.warehouse_id,
                         change,
                         adjustData.reason,
                         adjustData.isDisposal,
+                        adjustingItem.has_serial_number
+                          ? adjustData.serial_id
+                          : undefined,
                       );
                       setAdjustingItem(null);
                       setAdjustData({
                         quantity: 1,
+                        serial_id: "",
                         reason: "",
                         isDisposal: false,
                         type: "OUT",

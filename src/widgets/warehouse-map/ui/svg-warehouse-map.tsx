@@ -1,36 +1,59 @@
-'use client'
+"use client";
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { Warehouse, Info, Map as MapIcon } from 'lucide-react'
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { motion, AnimatePresence } from "framer-motion";
+import { Warehouse, Info, Map as MapIcon } from "lucide-react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 const ZONES = [
-  { id: 'zone-a', name: 'A구역', desc: '본관 메세드 창고', path: 'M 50 50 L 250 50 L 250 150 L 50 150 Z', color: '#3b82f6' },
-  { id: 'zone-b', name: 'B구역', desc: '신관 소모품실', path: 'M 260 50 L 450 50 L 450 250 L 260 250 Z', color: '#6366f1' },
-  { id: 'zone-c', name: 'C구역', desc: '실습동 외부 창고', path: 'M 50 160 L 250 160 L 250 250 L 50 250 Z', color: '#10b981' },
-]
+  {
+    id: "zone-a",
+    name: "A구역",
+    desc: "본관 메세드 창고",
+    path: "M 50 50 L 250 50 L 250 150 L 50 150 Z",
+    color: "#3b82f6",
+  },
+  {
+    id: "zone-b",
+    name: "B구역",
+    desc: "신관 소모품실",
+    path: "M 260 50 L 450 50 L 450 250 L 260 250 Z",
+    color: "#6366f1",
+  },
+  {
+    id: "zone-c",
+    name: "C구역",
+    desc: "실습동 외부 창고",
+    path: "M 50 160 L 250 160 L 250 250 L 50 250 Z",
+    color: "#10b981",
+  },
+];
 
 interface SVGWarehouseMapProps {
-  activeZone: string | null
-  onZoneSelect: (zoneId: string | null) => void
+  activeZone: string | null;
+  onZoneSelect: (zoneId: string | null) => void;
 }
 
-export default function SVGWarehouseMap({ activeZone, onZoneSelect }: SVGWarehouseMapProps) {
+export default function SVGWarehouseMap({
+  activeZone,
+  onZoneSelect,
+}: SVGWarehouseMapProps) {
   return (
     <div className="relative group">
-      <div className="flex items-center justify-between mb-2 px-4 sm:px-0">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 bg-blue-500/10 rounded-lg text-blue-500">
             <MapIcon className="w-4 h-4" />
           </div>
-          <h2 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">물류 구역 관리</h2>
+          <h2 className="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">
+            물류 구역 관리
+          </h2>
         </div>
-        
+
         <AnimatePresence mode="wait">
           {activeZone && (
             <motion.button
@@ -38,7 +61,7 @@ export default function SVGWarehouseMap({ activeZone, onZoneSelect }: SVGWarehou
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               onClick={() => onZoneSelect(null)}
-              className="text-[10px] font-black text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1 rounded-full dark:bg-blue-900/30 dark:text-blue-400 uppercase tracking-widest"
+              className="text-[9px] sm:text-[10px] font-black text-blue-600 hover:text-blue-700 bg-blue-50 px-2 sm:px-3 py-1 rounded-full dark:bg-blue-900/30 dark:text-blue-400 uppercase tracking-widest"
             >
               전체 보기
             </motion.button>
@@ -55,17 +78,28 @@ export default function SVGWarehouseMap({ activeZone, onZoneSelect }: SVGWarehou
           >
             {/* Background Grid Patterns */}
             <defs>
-              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-gray-200 dark:text-zinc-800" />
+              <pattern
+                id="grid"
+                width="20"
+                height="20"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M 20 0 L 0 0 0 20"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="0.5"
+                  className="text-gray-200 dark:text-zinc-800"
+                />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#grid)" rx="10" />
 
             {/* Zones */}
             {ZONES.map((zone) => {
-              const isActive = activeZone === zone.id
-              const isAnyActive = activeZone !== null
-              
+              const isActive = activeZone === zone.id;
+              const isAnyActive = activeZone !== null;
+
               return (
                 <g key={zone.id}>
                   {isActive && (
@@ -83,39 +117,41 @@ export default function SVGWarehouseMap({ activeZone, onZoneSelect }: SVGWarehou
                     d={zone.path}
                     fill={zone.color}
                     initial={{ opacity: 0.6, scale: 1 }}
-                    animate={{ 
+                    animate={{
                       opacity: isAnyActive ? (isActive ? 0.9 : 0.2) : 0.7,
                       scale: isActive ? 1.02 : 1,
-                      filter: isActive 
-                        ? 'brightness(1.2) drop-shadow(0 0 15px ' + zone.color + '44)' 
-                        : 'brightness(1) drop-shadow(0 0 0px transparent)'
+                      filter: isActive
+                        ? "brightness(1.2) drop-shadow(0 0 15px " +
+                          zone.color +
+                          "44)"
+                        : "brightness(1) drop-shadow(0 0 0px transparent)",
                     }}
                     whileHover={{ opacity: 0.9, scale: 1.01 }}
                     className="cursor-pointer transition-all duration-500"
                     onClick={() => onZoneSelect(isActive ? null : zone.id)}
                   />
                 </g>
-              )
+              );
             })}
 
             {/* Labels */}
             {ZONES.map((zone) => {
-              const isActive = activeZone === zone.id
-              const isAnyActive = activeZone !== null
-              
+              const isActive = activeZone === zone.id;
+              const isAnyActive = activeZone !== null;
+
               return (
                 <motion.g
                   key={`label-${zone.id}`}
                   initial={{ opacity: 0.8 }}
-                  animate={{ 
+                  animate={{
                     opacity: isAnyActive ? (isActive ? 1 : 0.3) : 0.8,
-                    y: isActive ? -5 : 0
+                    y: isActive ? -5 : 0,
                   }}
                   pointerEvents="none"
                 >
                   <text
-                    x={zone.id === 'zone-b' ? 355 : 150}
-                    y={zone.id === 'zone-c' ? 205 : 100}
+                    x={zone.id === "zone-b" ? 355 : 150}
+                    y={zone.id === "zone-c" ? 205 : 100}
                     textAnchor="middle"
                     className="fill-white font-black text-xs sm:text-sm tracking-[0.2em] drop-shadow-md select-none"
                     stroke="rgba(0,0,0,0.1)"
@@ -124,7 +160,7 @@ export default function SVGWarehouseMap({ activeZone, onZoneSelect }: SVGWarehou
                     {zone.name}
                   </text>
                 </motion.g>
-              )
+              );
             })}
           </svg>
         </div>
@@ -143,15 +179,15 @@ export default function SVGWarehouseMap({ activeZone, onZoneSelect }: SVGWarehou
                 선택됨
               </div>
               <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                {ZONES.find(z => z.id === activeZone)?.name}
+                {ZONES.find((z) => z.id === activeZone)?.name}
               </p>
               <p className="text-[10px] text-gray-500">
-                {ZONES.find(z => z.id === activeZone)?.desc}
+                {ZONES.find((z) => z.id === activeZone)?.desc}
               </p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
     </div>
-  )
+  );
 }
