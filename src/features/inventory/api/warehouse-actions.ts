@@ -10,6 +10,7 @@ export async function createWarehouse(formData: FormData) {
   const { error } = await supabase.from('warehouses').insert({ name })
 
   if (!error) {
+    revalidatePath('/')
     revalidatePath('/admin/warehouses')
     revalidatePath('/admin')
   }
@@ -22,6 +23,7 @@ export async function deleteWarehouse(id: string) {
   const { error } = await supabase.from('warehouses').delete().eq('id', id)
   
   if (!error) {
+    revalidatePath('/')
     revalidatePath('/admin/warehouses')
     revalidatePath('/admin')
   }

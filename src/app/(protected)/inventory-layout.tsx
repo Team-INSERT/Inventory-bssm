@@ -29,20 +29,10 @@ export default function InventoryLayout({
   const handleZoneSelect = (zoneId: string | null) => {
     setActiveZone(zoneId);
   };
-
-  const getActiveWarehouseId = () => {
-    if (!activeZone) return null;
-    const zoneNameMap: Record<string, string> = {
-      "zone-a": "A구역",
-      "zone-b": "B구역",
-      "zone-c": "C구역",
-    };
-    const targetName = zoneNameMap[activeZone];
-    if (!targetName) return null;
-    return warehouses.find((w) => w.name.includes(targetName))?.id || null;
-  };
-
-  const activeWarehouseId = getActiveWarehouseId();
+  const activeWarehouseId = activeZone;
+  const activeWarehouse = warehouses.find(
+    (warehouse) => warehouse.id === activeWarehouseId,
+  );
 
   const filteredData = activeWarehouseId
     ? initialData.filter((item) => item.warehouse_id === activeWarehouseId)
@@ -58,6 +48,7 @@ export default function InventoryLayout({
         <SVGWarehouseMap
           activeZone={activeZone}
           onZoneSelect={handleZoneSelect}
+          warehouses={warehouses}
         />
       </motion.div>
 
@@ -73,7 +64,7 @@ export default function InventoryLayout({
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <h3 className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-[0.2em]">
                 {activeZone
-                  ? `${activeZone.replace("zone-", "").toUpperCase()} 구역 재고 현황`
+                  ? `${activeWarehouse?.name || "선택 창고"} 재고 현황`
                   : "전체 재고 현황"}
               </h3>
             </div>
