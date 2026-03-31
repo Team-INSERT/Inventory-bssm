@@ -21,6 +21,7 @@ function cn(...inputs: ClassValue[]) {
 
 const NAV_ITEMS = [
   { href: "/admin", icon: LayoutDashboard, label: "대시보드" },
+  { href: "/admin/users", icon: Users, label: "유저 관리" },
   { href: "/admin/items", icon: PackageMinus, label: "물품 관리" },
   { href: "/admin/warehouses", icon: Warehouse, label: "창고 관리" },
   { href: "/admin/transfer", icon: ArrowRightLeft, label: "재고 이동" },

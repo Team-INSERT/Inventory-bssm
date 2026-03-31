@@ -1,14 +1,12 @@
-import { redirect } from "next/navigation";
-
-import { login, signup } from "@/features/auth/api/actions";
-import { AlertCircle } from "lucide-react";
+import { login } from "@/features/auth/api/actions";
+import { AlertCircle, CheckCircle } from "lucide-react";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; message?: string }>;
 }) {
-  const error = (await searchParams).error;
+  const { error, message } = await searchParams;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-4 dark:bg-zinc-950">
@@ -26,6 +24,13 @@ export default async function LoginPage({
           <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950/50 dark:text-red-400">
             <AlertCircle className="h-4 w-4" />
             <p>{error}</p>
+          </div>
+        )}
+
+        {message && (
+          <div className="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-600 dark:bg-green-950/50 dark:text-green-400">
+            <CheckCircle className="h-4 w-4" />
+            <p>{message}</p>
           </div>
         )}
 
@@ -56,7 +61,7 @@ export default async function LoginPage({
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                비밀번호
+                비밀번호 / PIN 번호
               </label>
               <div className="mt-1">
                 <input
@@ -71,60 +76,18 @@ export default async function LoginPage({
             </div>
           </div>
 
-          <div className="flex gap-4">
-            <button
-              formAction={login}
-              className="flex w-full justify-center rounded-lg border border-transparent bg-blue-600 py-2.5 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
-            >
-              로그인
-            </button>
-            <button
-              formAction={async () => { "use server"; redirect("/signup"); }}
-              className="flex w-full justify-center rounded-lg border border-gray-300 bg-white py-2.5 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
-            >
-              회원가입
-            </button>
-          </div>
+          <button
+            formAction={login}
+            className="flex w-full justify-center rounded-lg border border-transparent bg-blue-600 py-2.5 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
+          >
+            로그인
+          </button>
         </form>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300 dark:border-zinc-700" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-gray-500 dark:bg-zinc-900 dark:text-gray-400">
-              테스트용 빠른 로그인
-            </span>
-          </div>
+        <div className="rounded-xl border border-dashed border-gray-200 px-4 py-3 text-sm text-gray-500 dark:border-zinc-800 dark:text-gray-400">
+          계정이 없으면 관리자에게 계정 발급을 요청하세요. 일반 사용자는 직접
+          회원가입할 수 없습니다.
         </div>
-
-        <form className="flex flex-col gap-3">
-          <button
-            formAction={async () => {
-              "use server";
-              const fd = new FormData();
-              fd.append("email", "admin@bsm.hs.kr");
-              fd.append("password", "admin@1234");
-              await login(fd);
-            }}
-            className="flex w-full justify-center rounded-lg border border-indigo-600 bg-indigo-50 py-2.5 px-4 text-sm font-bold text-indigo-700 shadow-sm hover:bg-indigo-100 dark:bg-indigo-900/30 dark:border-indigo-500 dark:text-indigo-300 dark:hover:bg-indigo-900/50 transition-colors"
-          >
-            👨‍🔧 관리자 계정으로 접속
-          </button>
-
-          <button
-            formAction={async () => {
-              "use server";
-              const fd = new FormData();
-              fd.append("email", "user@bsm.hs.kr");
-              fd.append("password", "user@1234");
-              await login(fd);
-            }}
-            className="flex w-full justify-center rounded-lg border border-emerald-600 bg-emerald-50 py-2.5 px-4 text-sm font-bold text-emerald-700 shadow-sm hover:bg-emerald-100 dark:bg-emerald-900/30 dark:border-emerald-500 dark:text-emerald-300 dark:hover:bg-emerald-900/50 transition-colors"
-          >
-            🧑‍🎓 일반 사용자 계정으로 접속
-          </button>
-        </form>
       </div>
     </div>
   );

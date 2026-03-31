@@ -26,7 +26,9 @@ export async function login(formData: FormData) {
   if (error) {
     const errorMsg = error.message.includes("Invalid login credentials")
       ? "이메일 또는 비밀번호가 일치하지 않습니다."
-      : error.message;
+      : error.message.includes("Email not confirmed")
+        ? "이메일 인증이 완료되지 않았습니다."
+        : error.message;
     redirect(`/login?error=${encodeURIComponent(errorMsg)}`);
   }
 
@@ -38,11 +40,12 @@ export async function login(formData: FormData) {
 
   // Admin 클라이언트를 사용해서 사용자 프로필에서 역할 정보 가져오기 (RLS 정책 우회)
   const adminClient = await getSupabaseAdminClient();
-  let { data: userData, error: userError } = await adminClient
+  const { data: userData, error: userError } = await adminClient
     .from("users")
     .select("role")
     .eq("id", data.user.id)
     .single();
+  let resolvedRole = userData?.role;
 
   // 사용자 레코드가 없으면 자동으로 생성
   if (userError && userError.code === "PGRST116") {
@@ -63,8 +66,7 @@ export async function login(formData: FormData) {
         `/login?error=${encodeURIComponent("사용자 프로필 생성에 실패했습니다.")}`,
       );
     }
-
-    userData = { role: "user" };
+    resolvedRole = "user";
   } else if (userError) {
     console.error("User retrieval error:", userError);
     redirect(
@@ -76,19 +78,44 @@ export async function login(formData: FormData) {
   await adminClient.auth.admin.updateUserById(data.user.id, {
     user_metadata: {
       ...data.user.user_metadata,
-      role: userData?.role,
+      role: resolvedRole,
     },
   });
 
   revalidatePath("/", "layout");
 
   // 역할에 따라 다른 페이지로 리다이렉트
-  const userRole = userData?.role;
+  const userRole = resolvedRole;
   if (userRole === "admin") {
     redirect("/admin");
   } else {
     redirect("/");
   }
+}
+
+async function requireAdminAccess() {
+  const supabase = await createSupabaseClient();
+  const adminClient = await getSupabaseAdminClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("로그인이 필요합니다.");
+  }
+
+  const { data: userData, error } = await adminClient
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (error || userData?.role !== "admin") {
+    throw new Error("관리자만 접근할 수 있습니다.");
+  }
+
+  return { user, adminClient };
 }
 
 export async function signup(data: {
@@ -98,40 +125,82 @@ export async function signup(data: {
   fullName: string;
   phoneNumber: string;
 }) {
-  try {
-    const adminClient = await getSupabaseAdminClient();
+  void data;
 
-    // Create auth user
+  return {
+    error: "공개 회원가입은 비활성화되어 있습니다. 관리자에게 계정 발급을 요청하세요.",
+  };
+}
+
+export async function createManagedUser(data: {
+  email: string;
+  fullName: string;
+  phoneNumber: string;
+  pin: string;
+}) {
+  try {
+    const email = data.email.trim().toLowerCase();
+    const fullName = data.fullName.trim();
+    const phoneNumber = data.phoneNumber.trim();
+    const pin = data.pin.trim();
+
+    if (!email || !fullName || !pin) {
+      return { error: "필수 항목을 모두 입력해주세요." };
+    }
+
+    if (!/^\d{6}$/.test(pin)) {
+      return { error: "PIN 번호는 6자리 숫자여야 합니다." };
+    }
+
+    const { adminClient } = await requireAdminAccess();
+
+    const username = email.split("@")[0];
+
+    const { data: existingEmail, error: emailError } = await adminClient
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (emailError) {
+      return { error: "이메일 중복 여부를 확인할 수 없습니다." };
+    }
+
+    if (existingEmail) {
+      return { error: "이미 등록된 이메일입니다." };
+    }
+
     const { data: authData, error: authError } =
       await adminClient.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
+        email,
+        password: pin,
         email_confirm: true,
         user_metadata: {
-          full_name: data.fullName,
-          username: data.username,
-          phone_number: data.phoneNumber,
+          full_name: fullName,
+          username,
+          phone_number: phoneNumber || null,
           role: "user",
+          created_by_admin: true,
         },
       });
 
     if (authError) {
+      if (
+        authError.message.includes("already registered") ||
+        authError.message.includes("already been registered")
+      ) {
+        return { error: "이미 등록된 이메일입니다." };
+      }
+
       return { error: authError.message };
     }
 
-    // Create user profile
-    const { error: profileError } = await adminClient.from("users").insert({
-      id: authData.user.id,
-      email: data.email,
-      full_name: data.fullName,
-      username: data.username,
-      phone_number: data.phoneNumber,
-      role: "user",
-    });
-
-    if (profileError) {
-      return { error: profileError.message };
+    if (!authData.user) {
+      return { error: "사용자 생성에 실패했습니다." };
     }
+
+    revalidatePath("/admin/users");
+    revalidatePath("/admin");
 
     return { success: true };
   } catch (error) {
@@ -139,7 +208,7 @@ export async function signup(data: {
       error:
         error instanceof Error
           ? error.message
-          : "회원가입 중 오류가 발생했습니다.",
+          : "사용자 생성 중 오류가 발생했습니다.",
     };
   }
 }

@@ -6,9 +6,13 @@ CREATE TABLE public.users (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT NOT NULL,
   full_name TEXT,
+  username TEXT UNIQUE,
+  phone_number TEXT,
   role public.user_role DEFAULT 'user'::public.user_role NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+CREATE INDEX idx_users_username ON public.users(username);
 
 -- Enable RLS for users
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
@@ -21,8 +25,15 @@ CREATE POLICY "Admins can read all users" ON public.users FOR SELECT USING (
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.users (id, email, full_name, role)
-  VALUES (new.id, new.email, new.raw_user_meta_data->>'full_name', 'user');
+  INSERT INTO public.users (id, email, full_name, username, phone_number, role)
+  VALUES (
+    new.id,
+    new.email,
+    new.raw_user_meta_data->>'full_name',
+    new.raw_user_meta_data->>'username',
+    new.raw_user_meta_data->>'phone_number',
+    'user'
+  );
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
