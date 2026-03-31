@@ -1,98 +1,64 @@
-/\*\*
+# Supabase Setup
 
-- Setup Guide for Supabase Integration
--
-- 📋 Step 1: Database Schema Setup
-- ***
-- 1.  Go to Supabase Dashboard: https://supabase.com/dashboard/project/ezdxnhglpbrjugxeafzo
-- 2.  Navigate to: SQL Editor
-- 3.  Create a new query and copy the entire content from: ./supabase_schema.sql
-- 4.  Execute the SQL to create all tables and RLS policies
--
-- 📋 Step 2: Environment Variables
-- ***
-- ✅ Already configured in: .env.local
-- - NEXT_PUBLIC_SUPABASE_URL=https://ezdxnhglpbrjugxeafzo.supabase.co
-- - NEXT*PUBLIC_SUPABASE_ANON_KEY=sb_publishable*-6vy93xvVpWoD7xtNmw-gw_9ePdkHMB
--
-- For seed script, you'll also need:
-- - SUPABASE_SERVICE_ROLE_KEY (get from Settings > API > Service Role Key)
--
-- 📋 Step 3: Seed Database with Mock Data
-- ***
--
-- Option A: Using Node.js (Recommended)
-- 1.  Add SERVICE_ROLE_KEY to .env.local:
-- SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
--
-- 2.  Run seed script:
-- node scripts/seed-db.js
--
-- Option B: Manual SQL Insert
-- If you prefer to seed data manually:
-- 1.  Go to SQL Editor in Supabase Dashboard
-- 2.  Copy the content from ./supabase_seed_data.sql
-- 3.  Execute it
--
-- 📋 Step 4: Test the Connection
-- ***
-- 1.  Start the dev server:
-- npm run dev
--
-- 2.  Check that pages load and queries work
-- 3.  Check browser console for any errors
--
-- 🔑 Getting Your Service Role Key
-- ***
-- 1.  Go to: https://supabase.com/dashboard/project/ezdxnhglpbrjugxeafzo/settings/api
-- 2.  Look for "Service Role Key" (different from Anon Key)
-- 3.  Copy it and add to .env.local
-- ⚠️ NEVER commit this key to git - it's a secret!
--
-- 📚 Database Schema Overview
-- ***
-- Tables:
-- - users: User accounts (extended from auth.users)
-- - warehouses: Storage locations
-- - items: Equipment/inventory items
-- - item_serials: Serial numbers for tracked items
-- - inventory: Quantity mapping (items × warehouses)
-- - transactions: Audit log (check-in, check-out, transfers, disposals)
--
-- Row Level Security (RLS):
-- - Users can only see their own data
-- - Admins can see all data
-- - All modifications require appropriate permissions
--
-- 🆘 Troubleshooting
-- ***
--
-- Q: "NEXT_PUBLIC_SUPABASE_URL is not defined"
-- A: Make sure .env.local exists and has the correct values
--
-- Q: "RLS policy violation"
-- A: Check that you're logged in with a user that has the right role
--
-- Q: Seed script fails
-- A: Make sure SUPABASE_SERVICE_ROLE_KEY is set in environment
--
-- Q: No data showing in app
-- A: 1. Check Supabase Dashboard > Table Editor to verify data was inserted
-- 2. Check browser console for query errors
-- 3. Verify RLS policies allow your user role
--
-- 🎯 Next Steps
-- ***
-- 1.  Execute the SQL schema in Supabase Dashboard
-- 2.  Get your Service Role Key from Settings > API
-- 3.  Run: SUPABASE_SERVICE_ROLE_KEY=<key> node scripts/seed-db.js
-- 4.  Test the app: npm run dev
-- 5.  Visit http://localhost:3000 and check tables are populated
--
-- 📝 Created files:
-- - .env.local: Environment configuration
-- - scripts/seed-db.ts: TypeScript seed script
-- - scripts/seed-db.js: JavaScript seed script
-- - src/shared/api/supabase/server-real.ts: Real Supabase server client
-- - SUPABASE_SETUP.md: This file
-    \*/
+## 1. Fresh Schema Setup
+
+1. Open Supabase SQL Editor.
+2. Run the full contents of `./supabase_schema.sql`.
+3. This creates the tables, RLS policies, and the auth trigger that copies `full_name`, `username`, and `phone_number` from auth metadata into `public.users`.
+4. If you use image upload, also run `./storage_policies.sql`.
+5. In Supabase Storage, create the `item-images` bucket if it does not exist.
+
+## 2. Existing Project Migration
+
+If your database was already created from an older version of the schema, also run:
+
+- `./supabase_schema_migration_v2.sql`
+
+That migration adds the missing `username` and `phone_number` columns to `public.users`.
+
+## 3. Environment Variables
+
+Required in `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` is required for admin-only server actions and maintenance scripts.
+
+## 4. Create Temporary Admin
+
+Create the first admin account with:
+
+```bash
+TEMP_ADMIN_EMAIL=admin@bsm.hs.kr TEMP_ADMIN_PASSWORD=246810 node scripts/create-temp-admin.mjs
+```
+
+If the auth account already exists, the script upgrades it to admin and resets the password/PIN to the provided value.
+
+## 5. Optional Seed Data
+
+Run either:
+
+```bash
+node scripts/seed-db.js
+```
+
+or, if you prefer SQL, run `./supabase_seed_data.sql` in the SQL Editor.
+
+## 6. Verify
+
+1. Start the app with `npm run dev`.
+2. Log in with the admin account you created.
+3. Open `/admin/users` and create normal user accounts there.
+4. Confirm normal users can log in with email + PIN.
+
+## Notes
+
+- `public.users` is populated automatically by the `on_auth_user_created` trigger.
+- Public signup is disabled.
+- Normal users must be created by an admin from `/admin/users`.
+- The login form accepts either a password or a 6-digit PIN.
+- Do not expose `SUPABASE_SERVICE_ROLE_KEY` to the browser.
