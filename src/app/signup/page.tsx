@@ -105,14 +105,14 @@ export default function SignupPage() {
 
         {error && (
           <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950/50 dark:text-red-400">
-            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <p>{error}</p>
           </div>
         )}
 
         {success && (
           <div className="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-600 dark:bg-green-950/50 dark:text-green-400">
-            <CheckCircle className="h-4 w-4 flex-shrink-0" />
+            <CheckCircle className="h-4 w-4 shrink-0" />
             <p>회원가입이 완료되었습니다! 로그인 페이지로 이동합니다...</p>
           </div>
         )}

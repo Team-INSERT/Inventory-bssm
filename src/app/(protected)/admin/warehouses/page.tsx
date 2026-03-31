@@ -1,9 +1,7 @@
 import { getSupabaseAdminClient } from "@/shared/api/supabase/server";
-import {
-  createWarehouse,
-  deleteWarehouse,
-} from "@/features/inventory/api/warehouse-actions";
-import { Plus, Trash2, Warehouse } from "lucide-react";
+import { createWarehouse } from "@/features/inventory/api/warehouse-actions";
+import { Plus, Warehouse } from "lucide-react";
+import { DeleteWarehouseButton } from "./delete-button";
 
 export const dynamic = "force-dynamic";
 
@@ -90,19 +88,7 @@ export default async function WarehousesPage() {
                         {wh.name}
                       </td>
                       <td className="px-3 sm:px-4 py-3 text-right">
-                        <form
-                          action={async () => {
-                            "use server";
-                            await deleteWarehouse(wh.id);
-                          }}
-                        >
-                          <button
-                            type="submit"
-                            className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </form>
+                        <DeleteWarehouseButton id={wh.id} />
                       </td>
                     </tr>
                   ))

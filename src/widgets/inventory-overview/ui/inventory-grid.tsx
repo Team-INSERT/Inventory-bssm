@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import PremiumSelect from "@/shared/ui/premium-select";
+import { ConfirmModal } from "@/shared/ui/confirm-modal";
 import { createClient } from "@/shared/api/supabase/client";
 import type {
   InventoryGridItem,
@@ -47,6 +48,12 @@ export default function InventoryGrid({
   const [availableSerials, setAvailableSerials] = useState<AvailableSerial[]>(
     [],
   );
+  const [disposingItem, setDisposingItem] = useState<{
+    item_id: string;
+    warehouse_id: string;
+    name: string;
+    quantity: number;
+  } | null>(null);
 
   // Debug: Log initial data
   useEffect(() => {
@@ -287,19 +294,12 @@ export default function InventoryGrid({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (
-                              confirm(
-                                `${inv.item_name}의 해당 창고 모든 재고를 폐기 처리할까요?\n이 작업은 되돌릴 수 없습니다.`,
-                              )
-                            ) {
-                              handleAdjust(
-                                inv.item_id,
-                                inv.warehouse_id,
-                                -inv.quantity,
-                                "즉시 폐기 처리",
-                                true,
-                              );
-                            }
+                            setDisposingItem({
+                              item_id: inv.item_id,
+                              warehouse_id: inv.warehouse_id,
+                              name: inv.item_name,
+                              quantity: inv.quantity,
+                            });
                           }}
                           className="px-4 py-2 bg-red-50 text-red-600 dark:bg-red-900/20 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-100 transition-all border border-red-100 dark:border-red-900/30"
                         >
@@ -615,6 +615,31 @@ export default function InventoryGrid({
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={!!disposingItem}
+        onClose={() => setDisposingItem(null)}
+        onConfirm={() => {
+          if (disposingItem) {
+            handleAdjust(
+              disposingItem.item_id,
+              disposingItem.warehouse_id,
+              -disposingItem.quantity,
+              "즉시 폐기 처리",
+              true,
+            );
+          }
+        }}
+        title="전체 재고 폐기"
+        message={
+          <>
+            <b>{disposingItem?.name}</b>의 해당 창고 모든 재고를 폐기
+            처리할까요?
+            <br />이 작업은 되돌릴 수 없으며 폐기 내역에 기록됩니다.
+          </>
+        }
+        confirmText="전체 폐기"
+      />
     </div>
   );
 }

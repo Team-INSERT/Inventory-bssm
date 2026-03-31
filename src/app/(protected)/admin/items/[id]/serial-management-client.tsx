@@ -6,7 +6,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useRouter } from "next/navigation";
-import { addBulkSerialNumbers, deleteSerialNumber, updateSerialNumberStatus } from "@/features/inventory/api/serial-actions";
+import {
+  addBulkSerialNumbers,
+  deleteSerialNumber,
+  updateSerialNumberStatus,
+} from "@/features/inventory/api/serial-actions";
+import { ConfirmModal } from "@/shared/ui/confirm-modal";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -151,6 +156,8 @@ export function SerialManagementClient({
   const [isAdding, setIsAdding] = useState(false);
   const [mode, setMode] = useState<"single" | "bulk">("single");
   const [serials, setSerials] = useState<any[]>(initialSerials);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [disposingId, setDisposingId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -167,21 +174,30 @@ export function SerialManagementClient({
       .filter(Boolean);
 
     if (newSerialsArray.length > 0) {
-      const warehouse_id = selectedWarehouseForNewSerial !== "none" ? selectedWarehouseForNewSerial : undefined;
-      const res = await addBulkSerialNumbers(item.id, newSerialsArray, warehouse_id);
-      
+      const warehouse_id =
+        selectedWarehouseForNewSerial !== "none"
+          ? selectedWarehouseForNewSerial
+          : undefined;
+      const res = await addBulkSerialNumbers(
+        item.id,
+        newSerialsArray,
+        warehouse_id,
+      );
+
       if (res && !res.error) {
         setNewSerial("");
         router.refresh();
       } else {
-        alert("시리얼 번호 추가 중 문제가 발생했습니다: " + (res?.error || "알 수 없는 오류"));
+        alert(
+          "시리얼 번호 추가 중 문제가 발생했습니다: " +
+            (res?.error || "알 수 없는 오류"),
+        );
       }
     }
     setIsAdding(false);
   };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
-    // Optimistic update
     setSerials(
       serials.map((s) => (s.id === id ? { ...s, status: newStatus } : s)),
     );
@@ -190,7 +206,6 @@ export function SerialManagementClient({
   };
 
   const handleDelete = async (id: string) => {
-    // Optimistic update
     setSerials(serials.filter((s) => s.id !== id));
     await deleteSerialNumber(id);
     router.refresh();
@@ -377,7 +392,16 @@ export function SerialManagementClient({
                       <div className="w-36">
                         <CustomSelect
                           value={serial.status}
-                          onChange={(val) => handleStatusChange(serial.id, val)}
+                          onChange={(val) => {
+                            if (
+                              val === "DISPOSED" &&
+                              serial.status !== "DISPOSED"
+                            ) {
+                              setDisposingId(serial.id);
+                            } else {
+                              handleStatusChange(serial.id, val);
+                            }
+                          }}
                           options={statusOptions}
                           placeholder="상태 변경"
                           className="px-3 py-1.5 rounded-xl border-0 !bg-transparent !ring-0 !shadow-none min-h-[36px]"
@@ -386,7 +410,7 @@ export function SerialManagementClient({
                       </div>
 
                       <button
-                        onClick={() => handleDelete(serial.id)}
+                        onClick={() => setDeletingId(serial.id)}
                         className="text-gray-300 hover:text-red-500 p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-100 sm:opacity-50 group-hover:opacity-100"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -411,6 +435,44 @@ export function SerialManagementClient({
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!deletingId}
+        onClose={() => setDeletingId(null)}
+        onConfirm={async () => {
+          if (deletingId) {
+            await handleDelete(deletingId);
+          }
+        }}
+        title="시리얼 삭제"
+        message={
+          <>
+            정말 이 시리얼을 삭제하시겠습니까?
+            <br />
+            데이터가 영구적으로 삭제됩니다.
+          </>
+        }
+        confirmText="삭제하기"
+      />
+
+      <ConfirmModal
+        isOpen={!!disposingId}
+        onClose={() => setDisposingId(null)}
+        onConfirm={async () => {
+          if (disposingId) {
+            await handleStatusChange(disposingId, "DISPOSED");
+          }
+        }}
+        title="시리얼 폐기"
+        message={
+          <>
+            이 시리얼을 <b>폐기됨</b> 처리하시겠습니까?
+            <br />
+            폐기 내역에 기록됩니다.
+          </>
+        }
+        confirmText="폐기하기"
+      />
     </div>
   );
 }
