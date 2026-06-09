@@ -1,5 +1,5 @@
 # ── 1. Build Stage ──
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
 
 # Set build-time dummy URL to bypass Prisma configuration validation
@@ -9,7 +9,7 @@ ENV DATABASE_URL="file:./prisma/dev.db"
 RUN npm install -g pnpm
 
 # Install python, native build tools, and git for better-sqlite3 and git-hosted packages
-RUN apk add --no-cache python3 make g++ git
+RUN apt-get update && apt-get install -y python3 make g++ git && rm -rf /var/lib/apt/lists/*
 
 # Copy workspaces manifests and locks
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -30,7 +30,7 @@ RUN DATABASE_URL="file:./prisma/dev.db" pnpm build
 RUN pnpm prune --prod
 
 # ── 2. Runner Stage ──
-FROM node:22-alpine AS runner
+FROM node:22-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
