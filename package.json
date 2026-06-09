@@ -27,6 +27,7 @@
     "react-zoom-pan-pinch": "^4.0.3",
     "school-floor-map": "github:bssm-oss/BSSM-Map",
     "tailwind-merge": "^3.5.0",
+    "tsx": "^4.21.0",
     "zod": "^4.3.6"
   },
   "prisma": {
@@ -42,7 +43,6 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.2.7",
     "tailwindcss": "^4",
-    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

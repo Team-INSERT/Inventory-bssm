@@ -33,13 +33,11 @@ RUN pnpm prune --prod
 FROM node:22-slim AS runner
 WORKDIR /app
 
-# Install openssl required by Prisma client runtime
 RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 ENV DATABASE_URL="file:./prisma/dev.db"
 ENV NODE_ENV=production
 
-# Copy built artifacts and pruned node_modules from builder stage
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
@@ -51,5 +49,4 @@ EXPOSE 3000
 
 ENV PORT=3000
 
-# Start Next.js using standard npm start (pnpm is not required in runner stage)
-CMD ["sh", "-c", "touch /app/prisma/dev.db && npx prisma db push && npm start"]
+CMD ["sh", "-c", "touch /app/prisma/dev.db && npx prisma db push && npx tsx prisma/seed.ts && npm start"]
