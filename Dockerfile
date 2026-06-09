@@ -8,8 +8,8 @@ ENV DATABASE_URL="file:./prisma/dev.db"
 # Install pnpm
 RUN npm install -g pnpm
 
-# Install python, native build tools, and git for better-sqlite3 and git-hosted packages
-RUN apt-get update && apt-get install -y python3 make g++ git && rm -rf /var/lib/apt/lists/*
+# Install python, native build tools, git, and openssl for better-sqlite3 and Prisma
+RUN apt-get update && apt-get install -y python3 make g++ git openssl && rm -rf /var/lib/apt/lists/*
 
 # Copy workspaces manifests and locks
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -33,6 +33,10 @@ RUN pnpm prune --prod
 FROM node:22-slim AS runner
 WORKDIR /app
 
+# Install openssl required by Prisma client runtime
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+ENV DATABASE_URL="file:./prisma/dev.db"
 ENV NODE_ENV=production
 
 # Copy built artifacts and pruned node_modules from builder stage
