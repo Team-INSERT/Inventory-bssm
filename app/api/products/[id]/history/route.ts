@@ -8,10 +8,6 @@ function parseProductId(id: string) {
   return Number.isNaN(productId) ? null : productId
 }
 
-function isAdmin(user: { role?: string } | undefined | null) {
-  return user?.role === "ADMIN"
-}
-
 const listHistoryQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -19,14 +15,9 @@ const listHistoryQuerySchema = z.object({
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
-  const user = session?.user as { role?: string } | undefined
 
   if (!session) {
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 })
-  }
-
-  if (!isAdmin(user)) {
-    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 })
   }
 
   const { id } = await params
