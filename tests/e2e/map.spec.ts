@@ -69,7 +69,8 @@ test("floor selector switches levels", async ({ page }) => {
 
   // Click 2F (index 1)
   await levelButtons.nth(1).click();
-  await expect(levelButtons.nth(1)).toHaveClass(/bg-blue/);
+  // School-floor-map uses inline styles for active state, not Tailwind classes
+  await expect(levelButtons.nth(1)).toHaveCSS("background-color", "rgb(37, 99, 235)");
 });
 
 // ── 3. Room detail panel shows empty state initially ────────────────

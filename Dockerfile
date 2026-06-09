@@ -2,6 +2,9 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
+# Set build-time dummy URL to bypass Prisma configuration validation
+ENV DATABASE_URL="file:./prisma/dev.db"
+
 # Install pnpm
 RUN npm install -g pnpm
 
@@ -18,10 +21,10 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Generate Prisma Client
-RUN pnpm exec prisma generate
+RUN DATABASE_URL="file:./prisma/dev.db" pnpm exec prisma generate
 
 # Build Next.js application
-RUN pnpm build
+RUN DATABASE_URL="file:./prisma/dev.db" pnpm build
 
 # Prune node_modules to keep only production dependencies
 RUN pnpm prune --prod
