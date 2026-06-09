@@ -14,6 +14,9 @@ out/
 build/
 tsconfig.tsbuildinfo
 
+# Serwist service worker build output
+public/sw*
+
 # Local development database
 prisma/dev.db
 

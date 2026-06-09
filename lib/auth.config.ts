@@ -7,16 +7,23 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
-      const isOnProtected =
-        !nextUrl.pathname.startsWith("/login") &&
-        !nextUrl.pathname.startsWith("/api/auth")
+      const { pathname } = nextUrl
 
-      if (isOnProtected) {
-        if (isLoggedIn) return true
-        return false
-      }
+      const publicPaths = [
+        "/login",
+        "/api/auth",
+        "/~offline",
+        "/manifest.webmanifest",
+        "/sw.js",
+        "/icons/",
+        "/apple-touch-icon.png",
+      ]
 
-      return true
+      const isPublic = publicPaths.some((path) => pathname.startsWith(path))
+
+      if (isPublic) return true
+
+      return isLoggedIn
     },
   },
   providers: [],
