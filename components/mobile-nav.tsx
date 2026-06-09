@@ -16,7 +16,7 @@ export function MobileNav({ isAdmin }: Props) {
     ].join(" ")
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950 md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950 pb-[env(safe-area-inset-bottom)] md:hidden">
       <div className="flex justify-around">
         <Link href="/products" className={linkClass("/products")}>
           <Package className="h-5 w-5" />

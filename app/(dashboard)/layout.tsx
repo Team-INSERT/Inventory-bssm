@@ -23,7 +23,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 md:h-screen md:overflow-hidden md:flex-row">
       {/* 모바일 상단 헤더 */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-800 bg-slate-950 px-4 py-3 md:hidden">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-800 bg-slate-950 px-4 py-3 pt-[env(safe-area-inset-top)] md:hidden">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">
             Inventory Control
@@ -119,7 +119,7 @@ export default async function DashboardLayout({
       </aside>
 
       <main className="flex-1 overflow-auto md:h-screen">
-        <div className="p-4 pb-24 sm:p-6 md:p-8 md:pb-8">{children}</div>
+        <div className="p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:p-6 md:p-8 md:pb-8">{children}</div>
       </main>
 
       {/* 모바일 하단 네비 */}
