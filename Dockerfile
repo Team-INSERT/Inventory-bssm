@@ -47,4 +47,4 @@ EXPOSE 3000
 ENV PORT=3000
 
 # Start Next.js using standard npm start (pnpm is not required in runner stage)
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npx prisma db push && npm start"]
