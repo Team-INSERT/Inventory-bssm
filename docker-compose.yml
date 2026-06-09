@@ -14,9 +14,6 @@ services:
       - NEXTAUTH_SECRET=your-secret-key-change-in-production
       - AUTH_TRUST_HOST=true
     volumes:
-      # Mount SQLite folder to persist data across container recreation
-      - prisma-data:/app/prisma
+      # Persist SQLite DB only (not the entire prisma directory)
+      - ./prisma/dev.db:/app/prisma/dev.db
     restart: always
-
-volumes:
-  prisma-data:

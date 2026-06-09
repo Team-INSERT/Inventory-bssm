@@ -45,10 +45,11 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma.config.mjs ./prisma.config.mjs
 
 EXPOSE 3000
 
 ENV PORT=3000
 
 # Start Next.js using standard npm start (pnpm is not required in runner stage)
-CMD ["sh", "-c", "npx prisma db push && npm start"]
+CMD ["sh", "-c", "touch /app/prisma/dev.db && npx prisma db push && npm start"]
