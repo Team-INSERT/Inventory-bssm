@@ -1,0 +1,8 @@
+allowBuilds:
+  '@prisma/engines': true
+  better-sqlite3: true
+  esbuild: true
+  prisma: true
+  unrs-resolver: true
+  school-floor-map: true
+  sharp: true

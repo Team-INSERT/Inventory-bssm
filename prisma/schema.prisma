@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  pin       String   @unique
+  name      String
+  role      String   @default("USER")
+  email     String?
+  password  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  histories ProductHistory[]
+}
+
+model Product {
+  id               Int       @id @default(autoincrement())
+  productNumber    String    @unique
+  productName      String
+  category         String
+  specification    String?
+  quantity         Int
+  acquisitionDate  DateTime
+  usefulLife       Int?
+  storageLocation  String    @default("")
+  photoUrl         String?
+  notes            String?
+  status           String    @default("ACTIVE")
+  disposedAt       DateTime?
+  disposedQuantity Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  histories ProductHistory[]
+}
+
+model ProductHistory {
+  id               Int      @id @default(autoincrement())
+  productId        Int
+  actionType       String
+  quantity         Int?
+  previousLocation String?
+  newLocation      String?
+  performedBy      Int
+  performedAt      DateTime @default(now())
+  notes            String?
+  sourceHistoryId  Int?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [performedBy], references: [id])
+}
